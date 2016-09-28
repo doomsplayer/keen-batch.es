@@ -1,3 +1,4 @@
+require Rustler
 defmodule KeenBatch do
   @on_load :load_nif
 
