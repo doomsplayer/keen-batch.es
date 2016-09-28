@@ -1,6 +1,6 @@
 use rustler::{NifEnv, NifTerm, NifResult, NifEncoder};
 
-rustler_export_nifs!("Elixir.KeenBatch.Native", [("add", 2, add)], None);
+rustler_export_nifs!("Elixir.KeenBatch", [("add", 2, add)], None);
 
 fn add<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
     let num1: i64 = try!(args[0].decode());
