@@ -3,9 +3,18 @@
 
 // Enable the rustler_codegen compiler plugin if we are not using
 // syntex.
-#![cfg_attr(not(feature = "with-syntex"), feature(plugin))]
+#![cfg_attr(not(feature = "with-syntex"), feature(plugin, custom_attribute))]
 #![cfg_attr(not(feature = "with-syntex"), plugin(rustler_codegen))]
 
+#![feature(link_args)]
+#[cfg(target_os="macos")]
+#[link_args = "-flat_namespace -undefined suppress"]
+extern "C" {}
+
+extern crate chrono;
+extern crate keenio_batch;
+#[macro_use]
+extern crate lazy_static;
 #[macro_use]
 extern crate rustler;
 

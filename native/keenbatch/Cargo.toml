@@ -33,6 +33,11 @@ git = "https://github.com/doomsplayer/Rustler"
 
 [dependencies]
 rustler = "0.11.0"
+lazy_static = "^0.2.1"
+chrono = "*"
+
+[dependencies.keenio-batch]
+git = "https://github.com/doomsplayer/keenio-batch.git"
 
 [dependencies.rustler_codegen]
 git = "https://github.com/doomsplayer/Rustler"
