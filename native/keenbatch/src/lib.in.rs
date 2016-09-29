@@ -11,24 +11,22 @@ use std::time::Duration;
 use std::error::Error;
 use std::ops::{Deref, DerefMut};
 
-use chrono::UTC;
-
 rustler_export_nifs!("Elixir.KeenBatch",
                      [("new_client", 2, new_client),
-                      ("set_redis", 2, set_redis),
-                      ("set_timeout", 2, set_timeout),
-                      ("new_query", 6, new_query),
-                      ("group_by", 2, group_by),
-                      ("filter", 2, filter),
-                      ("interval", 2, interval),
-                      ("other", 2, other),
-                      ("accumulate", 2, accumulate),
+                      ("set_redis!", 2, set_redis),
+                      ("set_timeout!", 2, set_timeout),
+                      ("new_query", 2, new_query),
+                      ("group_by!", 2, group_by),
+                      ("filter!", 2, filter),
+                      ("interval!", 2, interval),
+                      ("other!", 2, other),
+                      ("accumulate!", 2, accumulate),
+                      ("range!", 3, range),
+                      ("select!", 4, select),
                       ("send_query", 1, send_query),
-                      ("range", 3, range),
-                      ("select", 4, select),
-                      ("to_redis", 3, to_redis),
+                      ("to_redis!", 3, to_redis),
                       ("from_redis", 3, from_redis),
-                      ("to_string", 1, to_string)],
+                      ("to_string!", 1, to_string)],
                      Some(on_load));
 
 macro_rules! impl_wrapper {
@@ -149,16 +147,19 @@ fn set_timeout<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a
     Ok(get_atom_init("ok").to_term(env))
 }
 
-// mut c: FFICacheClient,
-// metric_type: c_int,
-// metric_target: *mut c_char,
-// collection: *mut c_char,
-// start: *mut c_char,
-// end: *mut c_char
-//
+#[ExStruct(module = "Elixir.KeenBatch.QueryOption")]
+struct QueryOption<'a> {
+    pub metric_type: NifTerm<'a>,
+    pub metric_target: &'a str,
+    pub collection: &'a str,
+    pub start: &'a str,
+    pub end: &'a str,
+}
+
 fn new_query<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
     let client: ResourceCell<ClientWrapper> = try!(args[0].decode());
-    let metric_type = NifAtom::from_term(env, args[1]).unwrap();
+    let query: QueryOption = try!(args[1].decode());
+    let metric_type = try!(NifAtom::from_term(env, query.metric_type).ok_or(NifError::BadArg));
 
     let metric = match metric_type {
         x if x == get_atom_init("count") => Metric::Count,
@@ -170,9 +171,15 @@ fn new_query<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>>
             return Ok(get_atom_init("ok").to_term(env));
         }
     };
-    let collection: String = try!(args[3].decode());
-    let start = try!(args[4].decode::<&str>()).parse().unwrap_or(UTC::now());
-    let end = try!(args[5].decode::<&str>()).parse().unwrap_or(UTC::now());
+    let collection = query.collection.to_string();
+    let start = match query.start.parse() {
+        Ok(u) => u,
+        Err(e) => return fail!(env, "{}", e),
+    };
+    let end = match query.end.parse() {
+        Ok(u) => u,
+        Err(e) => return fail!(env, "{}", e),
+    };
     let query: QueryWrapper =
         client.read().unwrap().query(metric, collection, TimeFrame::Absolute(start, end)).into();
 
@@ -219,7 +226,7 @@ fn filter<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
 
     let filter: FilterOptions = try!(args[1].decode());
 
-    let operator = NifAtom::from_term(env, filter.operator).unwrap();
+    let operator = try!(NifAtom::from_term(env, filter.operator).ok_or(NifError::BadArg));
 
     let filter = if let Ok(property_value) = filter.property_value.decode::<&str>() {
         gen_filter(filter.property_name, property_value, operator).unwrap()
@@ -276,11 +283,7 @@ fn send_query<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>
         ResultType::POD => {
             match query.data() {
                 Ok(s) => make_result(env, Success, &ResourceCell::new(PODResultWrapper(Some(s)))),
-                Err(e) => {
-                    make_result(env,
-                                Fail,
-                                &*format!("data type can not be converted to i64: '{}'", e))
-                }
+                Err(e) => fail!(env, "data type can not be converted to i64: '{}'", e),
             }
         }
         ResultType::Items => {
@@ -290,11 +293,7 @@ fn send_query<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>
                                 Success,
                                 &ResourceCell::new(ItemsResultWrapper(Some(s))))
                 }
-                Err(e) => {
-                    make_result(env,
-                                Fail,
-                                &*format!("data type can not be converted to Items: '{}'", e))
-                }
+                Err(e) => fail!(env, "data type can not be converted to Items: '{}'", e),
             }
         }
         ResultType::DaysPOD => {
@@ -304,11 +303,7 @@ fn send_query<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>
                                 Success,
                                 &ResourceCell::new(DaysPODResultWrapper(Some(s))))
                 }
-                Err(e) => {
-                    make_result(env,
-                                Fail,
-                                &*format!("data type can not be converted to Days<i64>: '{}'", e))
-                }
+                Err(e) => fail!(env, "data type can not be converted to Days<i64>: '{}'", e),
             }
         }
         ResultType::DaysItems => {
@@ -318,11 +313,7 @@ fn send_query<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>
                                 Success,
                                 &ResourceCell::new(DaysItemsResultWrapper(Some(s))))
                 }
-                Err(e) => {
-                    make_result(env,
-                                Fail,
-                                &*format!("data type can not be converted to Days<Items>: '{}'", e))
-                }
+                Err(e) => fail!(env, "data type can not be converted to Days<Items>: '{}'", e),
             }
         }
     }
@@ -334,21 +325,21 @@ fn accumulate<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>
     if let Ok(_) = args[0].decode::<ResourceCell<PODResultWrapper>>() {
         fail!(env, "i64 can not be converted to others")
     } else if let Ok(r) = args[0].decode::<ResourceCell<ItemsResultWrapper>>() {
-        let s = r.write().unwrap().take().unwrap().accumulate();
+        let s = try!(r.write().unwrap().take().ok_or(NifError::BadArg)).accumulate();
         make_result(env, Success, &ResourceCell::new(PODResultWrapper(Some(s))))
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysPODResultWrapper>>() {
-        let s = r.write().unwrap().take().unwrap().accumulate();
+        let s = try!(r.write().unwrap().take().ok_or(NifError::BadArg)).accumulate();
         make_result(env, Success, &ResourceCell::new(PODResultWrapper(Some(s))))
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysItemsResultWrapper>>() {
         match to {
             x if x == get_atom_init("dayspod") => {
-                let s = r.write().unwrap().take().unwrap().accumulate();
+                let s = try!(r.write().unwrap().take().ok_or(NifError::BadArg)).accumulate();
                 make_result(env,
                             Success,
                             &ResourceCell::new(DaysPODResultWrapper(Some(s))))
             }
             x if x == get_atom_init("pod") => {
-                let s = r.write().unwrap().take().unwrap().accumulate();
+                let s = try!(r.write().unwrap().take().ok_or(NifError::BadArg)).accumulate();
                 make_result(env, Success, &ResourceCell::new(PODResultWrapper(Some(s))))
             }
             _ => make_result(env, Fail, &*format!("data type can not be converted to")),
@@ -359,19 +350,24 @@ fn accumulate<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>
 }
 
 fn range<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
-
-    let from = try!(args[1].decode::<&str>()).parse().unwrap();
-    let to = try!(args[2].decode::<&str>()).parse().unwrap();
+    let from = match try!(args[1].decode::<&str>()).parse() {
+        Ok(u) => u,
+        Err(e) => return fail!(env, "{}", e),
+    };
+    let to = match try!(args[2].decode::<&str>()).parse() {
+        Ok(u) => u,
+        Err(e) => return fail!(env, "{}", e),
+    };
 
     if let Ok(_) = args[0].decode::<ResourceCell<PODResultWrapper>>() {
         fail!(env, "i64 can not be converted to others")
     } else if let Ok(_) = args[0].decode::<ResourceCell<ItemsResultWrapper>>() {
         fail!(env, "Items can not be converted to others")
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysPODResultWrapper>>() {
-        let r = r.write().unwrap().take().unwrap().range(from, to);
+        let r = try!(r.write().unwrap().take().ok_or(NifError::BadArg)).range(from, to);
         succr!(env, r, dayspod)
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysItemsResultWrapper>>() {
-        let r = r.write().unwrap().take().unwrap().range(from, to);
+        let r = try!(r.write().unwrap().take().ok_or(NifError::BadArg)).range(from, to);
         succr!(env, r, daysitems)
     } else {
         fail!(env, "not a valid source type")
@@ -382,7 +378,7 @@ fn select<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
 
     let key = try!(args[1].decode());
     let value: &str = try!(args[2].decode());
-    let to = NifAtom::from_term(env, args[3]).unwrap();
+    let to = try!(NifAtom::from_term(env, args[3]).ok_or(NifError::BadArg));
 
     if let Ok(_) = args[0].decode::<ResourceCell<PODResultWrapper>>() {
         fail!(env, "i64 not support select")
@@ -392,18 +388,18 @@ fn select<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
                 fail!(env, "Items can not be converted to Days<Items> or Days<i64>")
             }
             x if x == get_atom_init("items") => {
-                let r = r.write()
+                let r = try!(r.write()
                     .unwrap()
                     .take()
-                    .unwrap()
+                    .ok_or(NifError::BadArg))
                     .select((key, StringOrI64::String(value.into())));
                 succr!(env, r, items)
             }
             x if x == get_atom_init("pod") => {
-                let r = r.write()
+                let r = try!(r.write()
                     .unwrap()
                     .take()
-                    .unwrap()
+                    .ok_or(NifError::BadArg))
                     .select((key, StringOrI64::String(value.into())));
                 succr!(env, r, pod)
             }
@@ -412,7 +408,7 @@ fn select<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
     } else if let Ok(_) = args[0].decode::<ResourceCell<DaysPODResultWrapper>>() {
         fail!(env, "i64 not support select")
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysItemsResultWrapper>>() {
-        let r = r.write().unwrap().take().unwrap();
+        let r = try!(r.write().unwrap().take().ok_or(NifError::BadArg));
         let param = (key, StringOrI64::String(value.into()));
         match to {
             x if x == get_atom_init("daysitems") => succr!(env, r.select(param), daysitems),
@@ -431,13 +427,13 @@ fn to_redis<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> 
     let key = try!(args[1].decode());
 
     let result = if let Ok(r) = args[0].decode::<ResourceCell<PODResultWrapper>>() {
-        r.write().unwrap().take().unwrap().to_redis(key, expire)
+        try!(r.write().unwrap().take().ok_or(NifError::BadArg)).to_redis(key, expire)
     } else if let Ok(r) = args[0].decode::<ResourceCell<ItemsResultWrapper>>() {
-        r.write().unwrap().take().unwrap().to_redis(key, expire)
+        try!(r.write().unwrap().take().ok_or(NifError::BadArg)).to_redis(key, expire)
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysPODResultWrapper>>() {
-        r.write().unwrap().take().unwrap().to_redis(key, expire)
+        try!(r.write().unwrap().take().ok_or(NifError::BadArg)).to_redis(key, expire)
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysItemsResultWrapper>>() {
-        r.write().unwrap().take().unwrap().to_redis(key, expire)
+        try!(r.write().unwrap().take().ok_or(NifError::BadArg)).to_redis(key, expire)
     } else {
         return fail!(env, "not a valid source type");
     };
@@ -449,23 +445,23 @@ fn to_redis<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> 
 
 fn to_string<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
     let s = if let Ok(r) = args[0].decode::<ResourceCell<PODResultWrapper>>() {
-        r.write().unwrap().take().unwrap().to_string()
+        try!(r.write().unwrap().take().ok_or(NifError::BadArg)).to_string()
     } else if let Ok(r) = args[0].decode::<ResourceCell<ItemsResultWrapper>>() {
-        r.write().unwrap().take().unwrap().to_string()
+        try!(r.write().unwrap().take().ok_or(NifError::BadArg)).to_string()
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysPODResultWrapper>>() {
-        r.write().unwrap().take().unwrap().to_string()
+        try!(r.write().unwrap().take().ok_or(NifError::BadArg)).to_string()
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysItemsResultWrapper>>() {
-        r.write().unwrap().take().unwrap().to_string()
+        try!(r.write().unwrap().take().ok_or(NifError::BadArg)).to_string()
     } else {
         return fail!(env, "not a valid source type");
     };
-    make_result(env, Fail, &*s)
+    make_result(env, Success, &*s)
 }
 
 fn from_redis<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
     let key = try!(args[1].decode());
     let url = try!(args[0].decode());
-    let tp = NifAtom::from_term(env, args[2]).unwrap();
+    let tp = try!(NifAtom::from_term(env, args[2]).ok_or(NifError::BadArg));
 
     macro_rules! from_redis {
         ($env: expr, $t: ident) => {
