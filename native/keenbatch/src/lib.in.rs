@@ -19,7 +19,7 @@ rustler_export_nifs!("Elixir.KeenBatch",
                       ("group_by!", 2, group_by),
                       ("filter!", 2, filter),
                       ("interval!", 2, interval),
-                      ("other!", 2, other),
+                      ("other!", 3, other),
                       ("accumulate!", 2, accumulate),
                       ("range!", 3, range),
                       ("select!", 4, select),
@@ -269,7 +269,7 @@ fn interval<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> 
 
 fn other<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
     let query: ResourceCell<QueryWrapper> = try!(args[0].decode());
-    let key = try!(args[0].decode());
+    let key = try!(args[1].decode());
     let value = try!(args[2].decode());
     query.write().unwrap().other(key, value);
     make_result(env, Success, "")

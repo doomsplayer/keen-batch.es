@@ -15,7 +15,7 @@ defmodule KeenBatch do
   def group_by!(_arg1, _arg2), do: exit(:nif_not_loaded)
   def filter!(_arg1, _arg2), do: exit(:nif_not_loaded)
   def interval!(_arg1, _arg2), do: exit(:nif_not_loaded)
-  def other!(_arg1, _arg2), do: exit(:nif_not_loaded)
+  def other!(_arg1, _arg2, _arg3), do: exit(:nif_not_loaded)
   def send_query(_arg1), do: exit(:nif_not_loaded)
   def accumulate!(_arg1, _arg2), do: exit(:nif_not_loaded)
   def range!(_arg1, _arg2, _arg3), do: exit(:nif_not_loaded)
