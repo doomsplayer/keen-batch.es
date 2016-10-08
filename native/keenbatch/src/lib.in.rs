@@ -163,9 +163,7 @@ fn new_query<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>>
 
     let metric = match metric_type {
         x if x == get_atom_init("count") => Metric::Count,
-        x if x == get_atom_init("count_unique") => {
-            Metric::CountUnique(try!(args[2].decode::<&str>()).into())
-        }
+        x if x == get_atom_init("count_unique") => Metric::CountUnique(query.metric_target.into()),
         _ => {
             // set_global_error(format!("unsupported metric type").into());
             return Ok(get_atom_init("ok").to_term(env));
