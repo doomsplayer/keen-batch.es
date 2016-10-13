@@ -375,7 +375,7 @@ fn range<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
 fn select<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
 
     let key = try!(args[1].decode());
-    let value: &str = try!(args[2].decode());
+    let value: i64 = try!(args[2].decode());
     let to = try!(NifAtom::from_term(env, args[3]).ok_or(NifError::BadArg));
 
     if let Ok(_) = args[0].decode::<ResourceCell<PODResultWrapper>>() {
@@ -390,7 +390,7 @@ fn select<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
                     .unwrap()
                     .take()
                     .ok_or(NifError::BadArg))
-                    .select((key, StringOrI64::String(value.into())));
+                    .select((key, StringOrI64::I64(value)));
                 succr!(env, r, items)
             }
             x if x == get_atom_init("pod") => {
@@ -398,7 +398,7 @@ fn select<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
                     .unwrap()
                     .take()
                     .ok_or(NifError::BadArg))
-                    .select((key, StringOrI64::String(value.into())));
+                    .select((key, StringOrI64::I64(value)));
                 succr!(env, r, pod)
             }
             _ => fail!(env, "not a valid target type"),
@@ -407,7 +407,7 @@ fn select<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>> {
         fail!(env, "i64 not support select")
     } else if let Ok(r) = args[0].decode::<ResourceCell<DaysItemsResultWrapper>>() {
         let r = try!(r.write().unwrap().take().ok_or(NifError::BadArg));
-        let param = (key, StringOrI64::String(value.into()));
+        let param = (key, StringOrI64::I64(value.into()));
         match to {
             x if x == get_atom_init("daysitems") => succr!(env, r.select(param), daysitems),
             x if x == get_atom_init("pod") => succr!(env, r.select(param), pod),
