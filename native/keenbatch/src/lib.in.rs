@@ -4,6 +4,7 @@ use rustler::resource::ResourceCell;
 use rustler::atom::{get_atom_init, NifAtom};
 use rustler::list::NifListIterator;
 use rustler::tuple::make_tuple;
+use rustler::wrapper::nif_interface::ErlNifTaskFlags::*;
 
 use keenio_batch::{KeenCacheClient, KeenCacheQuery, KeenCacheResult, Metric, TimeFrame, Filter,
                    Interval, Days, Items, ResultType, ToFilterValue, StringOrI64};
@@ -12,21 +13,21 @@ use std::error::Error;
 use std::ops::{Deref, DerefMut};
 
 rustler_export_nifs!("Elixir.KeenBatch",
-                     [("new_client", 2, new_client),
-                      ("set_redis!", 2, set_redis),
-                      ("set_timeout!", 2, set_timeout),
-                      ("new_query", 2, new_query),
-                      ("group_by!", 2, group_by),
-                      ("filter!", 2, filter),
-                      ("interval!", 2, interval),
-                      ("other!", 3, other),
-                      ("accumulate!", 2, accumulate),
-                      ("range!", 3, range),
-                      ("select!", 4, select),
-                      ("send_query", 1, send_query),
-                      ("to_redis!", 3, to_redis),
-                      ("from_redis", 3, from_redis),
-                      ("to_string!", 1, to_string)],
+                     [("new_client", 2, new_client, ERL_NIF_NORMAL_JOB),
+                      ("set_redis!", 2, set_redis, ERL_NIF_NORMAL_JOB),
+                      ("set_timeout!", 2, set_timeout, ERL_NIF_NORMAL_JOB),
+                      ("new_query", 2, new_query, ERL_NIF_NORMAL_JOB),
+                      ("group_by!", 2, group_by, ERL_NIF_NORMAL_JOB),
+                      ("filter!", 2, filter, ERL_NIF_NORMAL_JOB),
+                      ("interval!", 2, interval, ERL_NIF_NORMAL_JOB),
+                      ("other!", 3, other, ERL_NIF_NORMAL_JOB),
+                      ("accumulate!", 2, accumulate, ERL_NIF_DIRTY_JOB_CPU_BOUND),
+                      ("range!", 3, range, ERL_NIF_DIRTY_JOB_CPU_BOUND),
+                      ("select!", 4, select, ERL_NIF_DIRTY_JOB_CPU_BOUND),
+                      ("send_query", 1, send_query, ERL_NIF_DIRTY_JOB_IO_BOUND),
+                      ("to_redis!", 3, to_redis, ERL_NIF_DIRTY_JOB_IO_BOUND),
+                      ("from_redis", 3, from_redis, ERL_NIF_DIRTY_JOB_IO_BOUND),
+                      ("to_string!", 1, to_string, ERL_NIF_NORMAL_JOB)],
                      Some(on_load));
 
 macro_rules! impl_wrapper {

@@ -5,8 +5,8 @@ dependencies = [
  "chrono 0.2.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "keenio-batch 0.3.0 (git+https://github.com/doomsplayer/keenio-batch.git)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustler 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustler_codegen 0.11.0 (git+https://github.com/doomsplayer/Rustler)",
+ "rustler 0.11.0 (git+https://github.com/doomsplayer/Rustler?branch=modified)",
+ "rustler_codegen 0.11.0 (git+https://github.com/doomsplayer/Rustler?branch=modified)",
 ]
 
 [[package]]
@@ -470,7 +470,7 @@ dependencies = [
 [[package]]
 name = "rustler"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/doomsplayer/Rustler?branch=modified#d84bf20b28cc0ef393358ab2a675099a04316c73"
 dependencies = [
  "erlang_nif-sys 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -479,7 +479,7 @@ dependencies = [
 [[package]]
 name = "rustler_codegen"
 version = "0.11.0"
-source = "git+https://github.com/doomsplayer/Rustler#793fce234d117b759a96b5506b1c685bc60472d6"
+source = "git+https://github.com/doomsplayer/Rustler?branch=modified#d84bf20b28cc0ef393358ab2a675099a04316c73"
 dependencies = [
  "aster 0.27.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "easy-plugin 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -783,8 +783,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum rustc-demangle 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "662b2795f21ff17df7c4c50c1d955c8b5fa9eaddd1cf1bb32f8de2372ffd989b"
 "checksum rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)" = "6159e4e6e559c81bd706afe9c8fd68f547d3e851ce12e76b1de7914bab61691b"
 "checksum rustc_version 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "c5f5376ea5e30ce23c03eb77cbe4962b988deead10910c372b226388b594c084"
-"checksum rustler 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b4548eaa9d89100003cf61298057e588090bf9e8c6a04b7ea1cd2e43c7756186"
-"checksum rustler_codegen 0.11.0 (git+https://github.com/doomsplayer/Rustler)" = "<none>"
+"checksum rustler 0.11.0 (git+https://github.com/doomsplayer/Rustler?branch=modified)" = "<none>"
+"checksum rustler_codegen 0.11.0 (git+https://github.com/doomsplayer/Rustler?branch=modified)" = "<none>"
 "checksum semver 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)" = "d4f410fedcf71af0345d7607d246e7ad15faaadd49d240ee3b24e5dc21a820ac"
 "checksum serde 0.8.10 (registry+https://github.com/rust-lang/crates.io-index)" = "7a1687e7258b35aa6117cb52d65aa8f289d544fdad0c7a31822973b4465e4066"
 "checksum serde_codegen 0.8.10 (registry+https://github.com/rust-lang/crates.io-index)" = "44d2c5df2af5b1e603d911d3c4f30febc2f0f25426ef9f468ba256c965f5afe8"

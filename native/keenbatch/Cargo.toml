@@ -29,16 +29,22 @@ with-syntex = [
 # Build dependency is only really required if using syntex.
 
 [build-dependencies.rustler_codegen]
+#path = "../../../Rustler/rustler_codegen"
 git = "https://github.com/doomsplayer/Rustler"
+branch = "modified"
 
 [dependencies]
-rustler = "0.11.0"
 lazy_static = "^0.2.1"
 chrono = "*"
+
+[dependencies.rustler]
+git = "https://github.com/doomsplayer/Rustler"
+branch = "modified"
 
 [dependencies.keenio-batch]
 git = "https://github.com/doomsplayer/keenio-batch.git"
 
 [dependencies.rustler_codegen]
+# path = "../../../Rustler/rustler_codegen"
 git = "https://github.com/doomsplayer/Rustler"
-
+branch = "modified"
