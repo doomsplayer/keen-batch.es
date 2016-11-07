@@ -21,12 +21,12 @@ rustler_export_nifs!("Elixir.KeenBatch",
                       ("filter!", 2, filter, ERL_NIF_NORMAL_JOB),
                       ("interval!", 2, interval, ERL_NIF_NORMAL_JOB),
                       ("other!", 3, other, ERL_NIF_NORMAL_JOB),
-                      ("accumulate!", 2, accumulate, ERL_NIF_DIRTY_JOB_CPU_BOUND),
-                      ("range!", 3, range, ERL_NIF_DIRTY_JOB_CPU_BOUND),
-                      ("select!", 4, select, ERL_NIF_DIRTY_JOB_CPU_BOUND),
-                      ("send_query", 1, send_query, ERL_NIF_DIRTY_JOB_IO_BOUND),
-                      ("to_redis!", 3, to_redis, ERL_NIF_DIRTY_JOB_IO_BOUND),
-                      ("from_redis", 3, from_redis, ERL_NIF_DIRTY_JOB_IO_BOUND),
+                      ("accumulate!", 2, accumulate, ERL_NIF_NORMAL_JOB),
+                      ("range!", 3, range, ERL_NIF_NORMAL_JOB),
+                      ("select!", 4, select, ERL_NIF_NORMAL_JOB),
+                      ("send_query", 1, send_query, ERL_NIF_NORMAL_JOB),
+                      ("to_redis!", 3, to_redis, ERL_NIF_NORMAL_JOB),
+                      ("from_redis", 3, from_redis, ERL_NIF_NORMAL_JOB),
                       ("to_string!", 1, to_string, ERL_NIF_NORMAL_JOB)],
                      Some(on_load));
 
@@ -465,8 +465,8 @@ fn from_redis<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>
     macro_rules! from_redis {
         ($env: expr, $t: ident) => {
             match KeenCacheResult::from_redis(url, key) {
-                Ok(o) => succr!(env, o, $t),
-                Err(e) => fail!(env, "{}", e)
+                Ok(o) => succr!($env, o, $t),
+                Err(e) => fail!($env, "{}", e)
             }
         }
     }
