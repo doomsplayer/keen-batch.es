@@ -1,50 +1,18 @@
 [package]
-name = "keenbatch"
-version = "0.1.0"
-authors = []
-build = "build.rs"
+name = "keen_batch"
+version = "0.2.0"
+authors = ["Young Wu <doomsplayer@gmail.com>"]
 
 [lib]
-name = "keenbatch"
+name = "keen_batch"
 path = "src/lib.rs"
 crate-type = ["dylib"]
 
-[features]
-
-# Compile with syntex by default. This will make the build process work on
-# Rust stable in exchange of worse error messages.
-#
-# You can optionally compile with Rust nightly for better error messages by
-# either:
-# * If using rustler-mix, add `default_features: false` to the crate config.
-# * If using cargo directly, pass the `--no-default-features` flag.
-# * Remove `with-syntex` from the default features list below.
-default = ["with-syntex"]
-
-with-syntex = [
-    "rustler_codegen/with-syntex",
-]
-
-[build-dependencies]
-# Build dependency is only really required if using syntex.
-
-[build-dependencies.rustler_codegen]
-#path = "../../../Rustler/rustler_codegen"
-git = "https://github.com/doomsplayer/Rustler"
-branch = "modified"
-
 [dependencies]
 lazy_static = "^0.2.1"
-chrono = "*"
-
-[dependencies.rustler]
-git = "https://github.com/doomsplayer/Rustler"
-branch = "modified"
+chrono = "0.2"
+rustler_codegen = { git = "https://github.com/hansihe/rustler.git" }
+rustler = { git = "https://github.com/doomsplayer/rustler.git" }
 
 [dependencies.keenio-batch]
 git = "https://github.com/doomsplayer/keenio-batch.git"
-
-[dependencies.rustler_codegen]
-# path = "../../../Rustler/rustler_codegen"
-git = "https://github.com/doomsplayer/Rustler"
-branch = "modified"

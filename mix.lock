@@ -1,3 +1,3 @@
 %{"elixir_make": {:hex, :elixir_make, "0.1.0", "b5a40367dce0ec15db916a9bcdfee189eebb536a13b814246e2551bcdb0c7031", [:mix], []},
   "ffi": {:git, "https://github.com/joshnuss/elixir-ffi.git", "15139b28910a8b535961d45bf2d683f0b98427c2", []},
-  "rustler": {:hex, :rustler, "0.4.0", "497f804c5e487b90e86950f4a404e15a6a1d0d98e28c5285d1db8e959b47099f", [:mix], []}}
+  "rustler": {:hex, :rustler, "0.8.0", "337e2b39c80dafb4a5d65d7791a9a97b3d566941bdb5c718d33488025e0299b0", [:mix], []}}

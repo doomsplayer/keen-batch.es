@@ -9,8 +9,8 @@ defmodule KeenBatch.Mixfile do
      start_permanent: Mix.env == :prod,
      compilers: [:rustler] ++ Mix.compilers,
      rustler_crates: [
-       keenbatch: [
-         path: "/native/keenbatch",
+       keen_batch: [
+         path: "./native/keenbatch",
          mode: (if Mix.env == :prod, do: :release, else: :debug),
        ]
      ],
@@ -34,6 +34,6 @@ defmodule KeenBatch.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   def deps do
-    [{:rustler, "~>0.4.0"}]
+    [{:rustler, "~>0.8.0"}]
   end
 end

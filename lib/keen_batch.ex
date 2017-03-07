@@ -1,10 +1,5 @@
 defmodule KeenBatch do
-  require Rustler
-  @on_load :load_nif
-
-  def load_nif do
-    :ok = Rustler.load_nif("keenbatch")
-  end
+  use Rustler, otp_app: :keen_batch
 
   # When loading a NIF module, dummy clauses for all NIF function are required.
   # NIF dummies usually just error out when called when the NIF is not loaded, as that should never normally happen.
